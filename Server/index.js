@@ -10,10 +10,14 @@ import UserModel from "./Models/userModel.js";
 import bookModel from "./Models/bookModel.js";
 import commentModel from "./Models/commentModel.js";
 import postModel from "./Models/postModel.js";
+import { PORT, DB_USER, DB_PASSWORD, DB_CLUSTER, DB_NAME } from "./config.js";
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Configure Multer for image uploads
 const uploadDir = 'uploads/';
@@ -28,17 +32,33 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const costring = "mongodb+srv://mallak:mallak@cluster0.eijuzc4.mongodb.net/book?appName=Cluster0";
+const connectionString = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER}/${DB_NAME}?retryWrites=true&w=majority`;
 
-mongoose.connect(costring)
+mongoose.set('strictQuery', false);
+
+mongoose.connect(connectionString, {
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+  family: 4, // Prefer IPv4 for Atlas DNS resolution
+  bufferCommands: false, // Do not buffer commands when disconnected
+})
   .then(() => {
     console.log("Success: Connected to HIBR Database (book)");
-    // Start the server only after the database is connected
-    app.listen(3001, () => {
-      console.log("Server is running on port 3001");
+    app.listen(PORT || 3001, () => {
+      console.log(`Server is running on port ${PORT || 3001}`);
     });
   })
-  .catch((err) => console.error("Error: Could not connect to MongoDB", err));
+  .catch((err) => {
+    console.error("Error: Could not connect to MongoDB", err);
+  });
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected. The server will stop accepting requests until reconnect.');
+});
 
 // Static folder for serving uploaded images
 app.use('/uploads', express.static('uploads'));
@@ -50,9 +70,14 @@ app.get("/", (req, res) => {
 
 app.post("/registerUser", async (req, res) => {
     try {
-        const { username, email, password, gender, birthdate } = req.body;
-        // Check if user already exists
-        const existingUser = await UserModel.findOne({ email });
+        console.log("Register attempt received. Raw body:", req.body);
+        const { username, password, gender, birthdate } = req.body;
+        const email = req.body.email.toLowerCase().trim();
+        // Check if user already exists (case-insensitive email match)
+        const escapedEmail = escapeRegex(email);
+        const existingUser = await UserModel.findOne({
+            email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') },
+        });
         if (existingUser) {
             return res.status(400).json({ message: "User already exists with this email" });
         }
@@ -80,18 +105,34 @@ app.post("/registerUser", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await UserModel.findOne({ email }); 
+        console.log("Login request received. Raw body:", req.body);
+        const loginValue = req.body.email?.trim();
+        const password = req.body.password;
+
+        if (!loginValue || !password) {
+            return res.status(400).json({ message: "Email/username and password are required" });
+        }
+
+        const escapedLogin = escapeRegex(loginValue);
+        const user = await UserModel.findOne({
+            $or: [
+                { email: { $regex: new RegExp(`^${escapedLogin}$`, 'i') } },
+                { username: { $regex: new RegExp(`^${escapedLogin}$`, 'i') } },
+            ],
+        });
+
+        console.log("User lookup result for login value:", loginValue, user ? "User found." : "User NOT found.");
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
             return res.status(401).json({ message: "Authentication failed" });
         }
-        
+
         const userResponse = user.toObject();
-        delete userResponse.password;
+        delete userResponse.password; // Security: Don't send hash back
         res.status(200).json({ user: userResponse, message: "Success." });
     } catch (error) {
         console.error("Login Error:", error.message);
@@ -177,11 +218,22 @@ app.get("/getBooks", async (req, res) => {
 app.delete("/deleteBook/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedBook = await bookModel.findByIdAndDelete(id);
-    
-    if (!deletedBook) {
+    const userEmail = req.body.userEmail?.toLowerCase().trim();
+
+    if (!userEmail) {
+      return res.status(400).json({ message: "User email is required to delete a book" });
+    }
+
+    const book = await bookModel.findById(id);
+    if (!book) {
       return res.status(404).json({ message: "Book not found" });
     }
+
+    if (book.userEmail?.toLowerCase() !== userEmail) {
+      return res.status(403).json({ message: "You are not authorized to delete this book" });
+    }
+
+    const deletedBook = await bookModel.findByIdAndDelete(id);
 
     // Delete the image file from the uploads folder if it exists
     if (deletedBook.image) {

@@ -1,33 +1,35 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import * as ENV from "../config";
+
 
 // Fetch all global posts
 export const getPosts = createAsyncThunk("posts/getPosts", async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get("http://localhost:3001/getPosts");
+    const response = await axios.get(`${ENV.API_BASE_URL}/getPosts`);
     return response.data;
   } catch (error) {
-    return rejectWithValue(error.response?.data?.message || "Failed to fetch feed");
+    return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch feed");
   }
 });
 
 // Save a new post
 export const savePost = createAsyncThunk("posts/savePost", async (postData, { rejectWithValue }) => {
   try {
-    const response = await axios.post("http://localhost:3001/savePost", postData);
+    const response = await axios.post(`${ENV.API_BASE_URL}/savePost`, postData);
     return response.data;
   } catch (error) {
-    return rejectWithValue(error.response?.data?.message || "Failed to share post");
+    return rejectWithValue(error.response?.data?.message || error.message || "Failed to share post");
   }
 });
 
 // Toggle like on a post
 export const likePost = createAsyncThunk("posts/likePost", async ({ postId, email }, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3001/likePost/${postId}`, { email });
+    const response = await axios.put(`${ENV.API_BASE_URL}/likePost/${postId}`, { email });
     return response.data;
   } catch (error) {
-    return rejectWithValue(error.response?.data?.message || "Interaction failed");
+    return rejectWithValue(error.response?.data?.message || error.message || "Interaction failed");
   }
 });
 

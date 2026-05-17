@@ -27,7 +27,8 @@ const Login = () => {
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = (e) => {
+    if (e) e.preventDefault();
     // Create an object with the email and password the user entered.
     const userData = {
       email: email,
@@ -42,19 +43,19 @@ const Login = () => {
     <Container fluid>
       <Row className="formrow justify-content-center">
         <Col className="columndiv1" md="6" lg="4">
-          <Form className="div-form" onSubmit={(e) => e.preventDefault()}>
+          <Form className="div-form" onSubmit={handleLogin}>
             <div className="text-center mb-4">
               <img src={logo} alt="HIBR Logo" style={{ height: '100px', borderRadius: '50%' }} />
             </div>
             <h2 className="text-center mb-4 text-primary">Login to HIBR</h2>
 
             <FormGroup>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <br/>
               <Input 
                 type="text" 
                 id="email" 
-                placeholder="Enter your email..." 
+                placeholder="Enter your email or username..." 
                 value={email}
                 onChange={(e) => setemail(e.target.value)}
               />
@@ -76,11 +77,10 @@ const Login = () => {
 
 
             <Button 
-              type="button" 
+              type="submit" 
               color="primary" 
               className="button w-100 mt-3 py-3 fw-bold border-0 shadow-sm" 
               disabled={isLoading} 
-              onClick={handleLogin}
               style={{ 
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 borderRadius: '15px'

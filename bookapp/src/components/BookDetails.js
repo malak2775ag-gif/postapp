@@ -4,8 +4,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Container, Row, Col, Card, CardBody, Button, Badge, Form, FormGroup, Input, Label } from 'reactstrap';
 import { FaStar, FaArrowLeft, FaCommentDots } from 'react-icons/fa';
 import { FaThumbsUp } from "react-icons/fa6";
-import { fetchBooks } from '../Features/BookSlice';
+import { fetchBooks, deleteBook } from '../Features/BookSlice';
 import { addComment, likeComment } from '../Features/commentSlice';
+import * as ENV from "../config";
 import moment from 'moment';
 
 const BookDetails = () => {
@@ -49,6 +50,14 @@ const BookDetails = () => {
     dispatch(likeComment({ bookId: id, commentId, userEmail: user.email }));
   };
 
+  const handleDeleteBook = async () => {
+    const confirmed = window.confirm("Are you sure you want to delete this book?");
+    if (!confirmed) return;
+
+    await dispatch(deleteBook({ id, userEmail: user.email }));
+    navigate('/');
+  };
+
   if (!book) {
     return (
       <Container className="py-5 text-center">
@@ -73,7 +82,7 @@ const BookDetails = () => {
           <Col md={5} lg={4} className="bg-light">
             <div className="h-100 d-flex align-items-center justify-content-center p-4">
               <img 
-                src={book.image ? `http://localhost:3001/uploads/${book.image}` : 'https://via.placeholder.com/300x450?text=No+Cover'} 
+                src={book.image ? `${ENV.IMAGE_BASE_URL}/${book.image}` : 'https://via.placeholder.com/300x450?text=No+Cover'} 
                 alt={book.title}
                 className="img-fluid shadow-sm"
                 style={{ borderRadius: '15px', maxHeight: '500px', width: 'auto', maxWidth: '100%', objectFit: 'contain' }}
@@ -119,14 +128,26 @@ const BookDetails = () => {
                 </Row>
               </div>
               
-              <Button 
-                color="primary" 
-                className="mt-4 px-4 py-2 fw-bold border-0 shadow-sm"
-                style={{ borderRadius: '12px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-                onClick={() => navigate('/')}
-              >
-                Return to Collection
-              </Button>
+              <div className="d-flex gap-3 mt-4">
+                <Button 
+                  color="primary" 
+                  className="px-4 py-2 fw-bold border-0 shadow-sm"
+                  style={{ borderRadius: '12px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                  onClick={() => navigate('/')}
+                >
+                  Return to Collection
+                </Button>
+                {user?.email === book.userEmail && (
+                  <Button
+                    color="danger"
+                    className="px-4 py-2 fw-bold border-0 shadow-sm"
+                    style={{ borderRadius: '12px' }}
+                    onClick={handleDeleteBook}
+                  >
+                    Delete Book
+                  </Button>
+                )}
+              </div>
             </CardBody>
           </Col>
         </Row>

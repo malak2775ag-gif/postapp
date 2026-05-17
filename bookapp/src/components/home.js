@@ -2,8 +2,9 @@ import { Container, Row, Col, Button, Card, CardImg, CardBody, CardTitle, CardSu
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { fetchBooks } from "../Features/BookSlice";
+import { fetchBooks, deleteBook } from "../Features/BookSlice";
 import { FaStar } from "react-icons/fa";
+import * as ENV from "../config";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -22,6 +23,12 @@ const Home = () => {
   // Filter books into user's shelf and others
   const myBooks = books.filter(book => book.userEmail === email);
   const otherBooks = books.filter(book => book.userEmail !== email);
+
+  const handleDeleteBook = (bookId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this book?");
+    if (!confirmed) return;
+    dispatch(deleteBook({ id: bookId, userEmail: email }));
+  };
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -73,7 +80,7 @@ const Home = () => {
                         <div style={{ height: '220px', overflow: 'hidden' }}>
                           <CardImg 
                             top 
-                            src={book.image ? `http://localhost:3001/uploads/${book.image}` : 'https://via.placeholder.com/150x220?text=No+Cover'} 
+                            src={book.image ? `${ENV.IMAGE_BASE_URL}/${book.image}` : 'https://via.placeholder.com/150x220?text=No+Cover'} 
                             alt={book.title}
                             style={{ height: '100%', objectFit: 'cover' }}
                           />
@@ -82,6 +89,26 @@ const Home = () => {
                           <CardTitle tag="h6" className="fw-bold mb-1 text-truncate">{book.title}</CardTitle>
                           <CardSubtitle tag="small" className="text-muted d-block mb-2">{book.author}</CardSubtitle>
                           <div className="mb-1">{renderStars(book.rating)}</div>
+                          <Button
+                            color="danger"
+                            size="sm"
+                            className="mt-3 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteBook(book._id);
+                            }}
+                            style={{
+                              borderRadius: '12px',
+                              background: 'linear-gradient(135deg, #ff6b6b 0%, #ff9f43 100%)',
+                              border: 'none',
+                              boxShadow: '0 8px 16px rgba(255, 111, 97, 0.18)',
+                              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                          >
+                            Delete
+                          </Button>
                         </CardBody>
                       </Card>
                     </Col>
@@ -107,7 +134,7 @@ const Home = () => {
                         <div style={{ height: '200px', overflow: 'hidden' }}>
                           <CardImg 
                             top 
-                            src={book.image ? `http://localhost:3001/uploads/${book.image}` : 'https://via.placeholder.com/150x200?text=No+Cover'} 
+                            src={book.image ? `${ENV.IMAGE_BASE_URL}/${book.image}` : 'https://via.placeholder.com/150x200?text=No+Cover'} 
                             alt={book.title}
                             style={{ height: '100%', objectFit: 'cover' }}
                           />

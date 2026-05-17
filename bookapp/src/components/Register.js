@@ -198,6 +198,7 @@ const Register = () => {
 
               {/* Submit button to register the user */}
               <Button 
+                type="submit"
                 color="primary" 
                 className="button w-100 mt-3 py-3 fw-bold border-0 shadow-sm"
                 disabled={isLoading}

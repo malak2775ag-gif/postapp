@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Container, Row, Col, Card, CardBody, Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
 import { updateUserProfile, reset } from '../Features/UserSlice';
 import { useNavigate } from 'react-router-dom';
+import * as ENV from "../config";
 import profileImg from '../assets/profile.png';
 
 const UpdateProfile = () => {
@@ -15,7 +16,7 @@ const UpdateProfile = () => {
   const [birthdate, setBirthdate] = useState(user?.birthdate ? new Date(user.birthdate).toISOString().split('T')[0] : '');
   const [password, setPassword] = useState('');
   const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(user?.image ? `http://localhost:3001/uploads/${user.image}` : profileImg);
+  const [imagePreview, setImagePreview] = useState(user?.image ? `${ENV.IMAGE_BASE_URL}/${user.image}` : profileImg);
 
   // Clear leftover success state from login/register on mount
   useEffect(() => {
@@ -41,7 +42,7 @@ const UpdateProfile = () => {
       setGender(user.gender);
       setBirthdate(user.birthdate ? new Date(user.birthdate).toISOString().split('T')[0] : '');
       setPassword(''); // Clear password field after update
-      setImagePreview(user.image ? `http://localhost:3001/uploads/${user.image}` : profileImg);
+      setImagePreview(user.image ? `${ENV.IMAGE_BASE_URL}/${user.image}` : profileImg);
     }
   }, [user]);
 
@@ -61,7 +62,7 @@ const UpdateProfile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    setImagePreview(file ? URL.createObjectURL(file) : (user.image ? `http://localhost:3001/uploads/${user.image}` : profileImg));
+    setImagePreview(file ? URL.createObjectURL(file) : (user.image ? `${ENV.IMAGE_BASE_URL}/${user.image}` : profileImg));
   };
   if (!user) return null;
 

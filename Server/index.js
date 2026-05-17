@@ -37,10 +37,15 @@ const connectionString = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER}/
 mongoose.set('strictQuery', false);
 
 mongoose.connect(connectionString, {
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-  family: 4, // Prefer IPv4 for Atlas DNS resolution
-  bufferCommands: false, // Do not buffer commands when disconnected
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  family: 4,
+  bufferCommands: false,
+  tls: true,
+  retryWrites: true,
+  w: 'majority',
+  maxPoolSize: 10,
+  minPoolSize: 5,
 })
   .then(() => {
     console.log("Success: Connected to HIBR Database (book)");

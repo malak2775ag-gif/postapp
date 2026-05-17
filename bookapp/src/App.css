@@ -1,0 +1,98 @@
+/* Cute & Fancy Theme Variables */
+:root {
+  --primary-cute: #ff85a2; /* Soft Pink */
+  --secondary-cute: #a29bfe; /* Lavender */
+  --text-cute: #574b90; /* Darker Purple for text */
+  --bg-cute: #fff5f7; /* Very light pink background */
+  --white: #ffffff;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-cute);
+}
+
+main {
+  padding: 40px 0;
+}
+
+.div-form {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px #0000000d;
+  border: 1px solid #e9ecef;
+}
+
+.formrow {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.smalltext {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--white) !important;
+  font-size: 1.6rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.fancy-header {
+  background: linear-gradient(135deg, var(--primary-cute) 0%, var(--secondary-cute) 100%) !important;
+  box-shadow: 0 6px 20px #ff85a266; /* More pronounced shadow */
+  border-bottom: 3px solid #ffffff33;
+  padding: 0.5rem 0; /* Balanced padding */
+  border-radius: 0 0 15px 15px; /* Soften bottom corners */
+}
+
+.navbar-nav {
+  list-style: none; /* Ensure no bullet points appear */
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.cute-nav-link {
+  color: var(--white) !important;
+  font-weight: 600;
+  margin: 0 8px;
+  transition: all 0.3s ease-in-out;
+  border-radius: 30px; /* More rounded */
+  padding: 10px 20px !important; /* Increased padding */
+  font-size: 1.05rem; /* Slightly larger font */
+  text-shadow: 1px 1px 2px #0000001a; /* Subtle text shadow */
+}
+
+.cute-nav-link:hover {
+  background-color: #ffc0cb66; /* Lighter, more vibrant pink on hover */
+  transform: translateY(-2px);
+  color: var(--white) !important;
+  box-shadow: 0 4px 10px #ff85a24d; /* Add a subtle lift shadow */
+}
+
+.fancy-footer {
+  background-color: var(--white) !important;
+  border-top: 5px solid var(--primary-cute);
+  color: var(--text-cute) !important;
+  box-shadow: 0 -5px 15px #00000005;
+}
+
+.fancy-footer p {
+  font-weight: 700;
+  font-size: 1.1rem;
+}

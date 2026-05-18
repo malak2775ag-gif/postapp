@@ -1,0 +1,92 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`matches the UI snapshot with screen.debug() 1`] = `
+<div>
+  <div
+    class="container-fluid"
+  >
+    <div
+      class="formrow justify-content-center row"
+    >
+      <div
+        class="columndiv1 col-md-6 col-lg-4"
+      >
+        <form
+          class="div-form"
+        >
+          <div
+            class="text-center mb-4"
+          >
+            <img
+              alt="HIBR Logo"
+              src="hibr_logo.png"
+              style="height: 100px; border-radius: 50%;"
+            />
+          </div>
+          <h2
+            class="text-center mb-4 text-primary"
+          >
+            Login to HIBR
+          </h2>
+          <div
+            class="mb-3"
+          >
+            <label
+              class="form-label"
+              for="email"
+            >
+              Email or Username
+            </label>
+            <br />
+            <input
+              autocomplete="username"
+              class="form-control"
+              id="email"
+              placeholder="Enter your email or username..."
+              type="text"
+              value=""
+            />
+          </div>
+          <br />
+          <div
+            class="mb-3"
+          >
+            <label
+              class="form-label"
+              for="password"
+            >
+              Password
+            </label>
+            <br />
+            <input
+              class="form-control"
+              id="password"
+              placeholder="Enter your password..."
+              type="password"
+              value=""
+            />
+          </div>
+          <br />
+          <button
+            class="button w-100 mt-3 py-3 fw-bold border-0 shadow-sm btn btn-primary"
+            style="border-radius: 15px;"
+            type="submit"
+          >
+            Login
+          </button>
+          <p
+            class="smalltext mt-3"
+          >
+            Don't have an account? 
+            <a
+              href="/register"
+            >
+              Register here
+            </a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+`;

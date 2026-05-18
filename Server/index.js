@@ -10,7 +10,8 @@ import UserModel from "./Models/userModel.js";
 import bookModel from "./Models/bookModel.js";
 import commentModel from "./Models/commentModel.js";
 import postModel from "./Models/postModel.js";
-import { PORT, DB_USER, DB_PASSWORD, DB_CLUSTER, DB_NAME } from "./config.js";
+/*import { PORT, DB_USER, DB_PASSWORD, DB_CLUSTER, DB_NAME } from "./config.js";*/
+import * as ENV from "./config.js";
 
 const app = express();
 app.use(express.json());
@@ -32,7 +33,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+/*
 const connectionString = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER}/${DB_NAME}?retryWrites=true&w=majority`;
+*/
+const connectionString= ENV.MONGO_URL; 
+const PORT = ENV.PORT;
 
 mongoose.set('strictQuery', false);
 

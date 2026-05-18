@@ -2,13 +2,14 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { addComment, likeComment } from "./commentSlice";
 import * as ENV from "../config";
+const SERVER_URL = ENV.API_BASE_URL;
 
 // Async thunk for adding a new book
 export const addBook = createAsyncThunk(
   "books/addBook",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${ENV.API_BASE_URL}/addBook`, formData);
+      const response = await axios.post(`${SERVER_URL}/addBook`, formData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message || "Failed to add book");
@@ -21,7 +22,7 @@ export const fetchBooks = createAsyncThunk(
   "books/fetchBooks",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${ENV.API_BASE_URL}/getBooks`);
+      const response = await axios.get(`${SERVER_URL}/getBooks`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch books");
@@ -34,7 +35,7 @@ export const deleteBook = createAsyncThunk(
   "books/deleteBook",
   async ({ id, userEmail }, { rejectWithValue }) => {
     try {
-      await axios.delete(`${ENV.API_BASE_URL}/deleteBook/${id}`, {
+      await axios.delete(`${SERVER_URL}/deleteBook/${id}`, {
         data: { userEmail },
       });
       return id; // Return the ID to filter it out from the state

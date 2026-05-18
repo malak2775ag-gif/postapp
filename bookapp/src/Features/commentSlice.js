@@ -1,12 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import * as ENV from "../config";
+const SERVER_URL = ENV.API_BASE_URL;   
+
 // Async thunk for adding a comment
 export const addComment = createAsyncThunk(
   "comments/addComment",
   async ({ bookId, commentData }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${ENV.API_BASE_URL}/books/${bookId}/comments`, commentData);
+      const response = await axios.post(`${SERVER_URL}/books/${bookId}/comments`, commentData);
       return { bookId, comment: response.data.comment };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message || "Failed to add comment");
@@ -19,7 +21,7 @@ export const likeComment = createAsyncThunk(
   "comments/likeComment",
   async ({ bookId, commentId, userEmail }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${ENV.API_BASE_URL}/books/${bookId}/comments/${commentId}/like`, { userEmail });
+      const response = await axios.put(`${SERVER_URL}/books/${bookId}/comments/${commentId}/like`, { userEmail });
       return { bookId, commentId, likes: response.data.likes };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message || "Failed to like comment");

@@ -17,14 +17,13 @@ const BookDetails = () => {
   
   const { user } = useSelector((state) => state.users);
   const { books } = useSelector((state) => state.books);
-  const book = books.find((b) => b._id === id);
+  // Memoize the book selection or ensure it's calculated every render from the Redux source
+  const book = books.find((b) => String(b._id) === String(id));
 
   useEffect(() => {
-    // If books aren't loaded (e.g., on page refresh), fetch them
-    if (books.length === 0) {
-      dispatch(fetchBooks());
-    }
-  }, [dispatch, books.length]);
+    // Always fetch books when the component mounts or the book ID changes to ensure fresh data
+    dispatch(fetchBooks());
+  }, [dispatch, id]); // Depend on 'id' to re-fetch if navigating between book details
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -34,6 +33,10 @@ const BookDetails = () => {
 
   const handleAddComment = (e) => {
     e.preventDefault();
+    if (!user) {
+      alert("Please login to post comments.");
+      return;
+    }
     if (!commentText.trim()) return;
 
     const commentData = {
@@ -42,12 +45,22 @@ const BookDetails = () => {
       username: user.username,
     };
 
-    dispatch(addComment({ bookId: id, commentData }));
+    // Dispatch addComment and then re-fetch books to update the UI with the new comment
+    dispatch(addComment({ bookId: id, commentData })).then(() => {
+      dispatch(fetchBooks());
+    });
     setCommentText("");
   };
 
   const handleLike = (commentId) => {
-    dispatch(likeComment({ bookId: id, commentId, userEmail: user.email }));
+    if (!user) {
+      alert("Please login to like comments.");
+      return;
+    }
+    // Dispatch likeComment and then re-fetch books to update the UI with the new like count
+    dispatch(likeComment({ bookId: id, commentId, userEmail: user.email })).then(() => {
+      dispatch(fetchBooks());
+    });
   };
 
   const handleDeleteBook = async () => {

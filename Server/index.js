@@ -6,12 +6,17 @@ import bcrypt from "bcrypt";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
 import UserModel from "./Models/userModel.js";
 import bookModel from "./Models/bookModel.js";
 import commentModel from "./Models/commentModel.js";
 import postModel from "./Models/postModel.js";
 /*import { PORT, DB_USER, DB_PASSWORD, DB_CLUSTER, DB_NAME } from "./config.js";*/
 import * as ENV from "./config.js";
+
+// Fix for __dirname in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
@@ -21,7 +26,7 @@ app.use(cors());
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Configure Multer for image uploads
-const uploadDir = 'uploads/';
+const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
@@ -65,7 +70,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 // Static folder for serving uploaded images
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(uploadDir));
 
 // Add a health check route to verify the server is reachable
 app.get("/", (req, res) => {
@@ -205,11 +210,14 @@ app.get("/getBooks", async (req, res) => {
     try {
         // Fetch all books
         const books = await bookModel.find().lean().sort({ createdAt: -1 });
-        
-        // Fetch comments for each book and attach them
-        const booksWithComments = await Promise.all(books.map(async (book) => {
-            const comments = await commentModel.find({ bookId: book._id }).sort({ createdAt: -1 });
-            return { ...book, comments };
+        const bookIds = books.map(b => b._id);
+
+        // Performance Optimization: Fetch all comments for all books in ONE query (N+1 fix)
+        const allComments = await commentModel.find({ bookId: { $in: bookIds } }).lean().sort({ createdAt: -1 });
+
+        const booksWithComments = books.map(book => ({
+            ...book,
+            comments: allComments.filter(c => c.bookId.toString() === book._id.toString())
         }));
 
         res.status(200).json(booksWithComments);
@@ -277,28 +285,26 @@ app.post("/books/:bookId/comments", async (req, res) => {
 app.put("/books/:bookId/comments/:commentId/like", async (req, res) => {
     try {
         const { commentId } = req.params;
-        const { userEmail } = req.body;
+        const userEmail = req.body.userEmail?.toLowerCase().trim();
+
+        if (!userEmail) return res.status(400).json({ message: "User email required" });
 
         const comment = await commentModel.findById(commentId);
         if (!comment) return res.status(404).json({ message: "Comment not found" });
 
-        const userIndex = comment.likes.users.indexOf(userEmail);
+        const isLiked = comment.likes.users.includes(userEmail);
 
-        if (userIndex !== -1) {
-            // Toggle Off: remove from array
-            comment.likes.users.splice(userIndex, 1);
-        } else {
-            // Toggle On: add to array
-            comment.likes.users.push(userEmail);
-        }
-
-        // Deriving count from array length prevents -1 and keeps data in sync
-        comment.likes.count = comment.likes.users.length;
-        await comment.save();
+        const updatedComment = await commentModel.findByIdAndUpdate(
+            commentId,
+            isLiked 
+                ? { $pull: { "likes.users": userEmail }, $inc: { "likes.count": -1 } }
+                : { $addToSet: { "likes.users": userEmail }, $inc: { "likes.count": 1 } },
+            { new: true }
+        );
 
         res.status(200).json({ 
-            commentId: comment._id, 
-            likes: comment.likes, 
+            commentId: updatedComment._id, 
+            likes: updatedComment.likes, 
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to like comment: " + error.message });
@@ -334,23 +340,24 @@ app.post("/savePost", async (req, res) => {
 app.put("/likePost/:postId", async (req, res) => {
     try {
         const { postId } = req.params;
-        const { email } = req.body; // Using email as the unique identifier
+        const email = req.body.email?.toLowerCase().trim();
 
-        const postToUpdate = await postModel.findById(postId);
-        if (!postToUpdate) return res.status(404).json({ message: "Post not found" });
+        if (!email) return res.status(400).json({ message: "Email required" });
 
-        const userIndex = postToUpdate.likes.users.indexOf(email);
+        const post = await postModel.findById(postId);
+        if (!post) return res.status(404).json({ message: "Post not found" });
 
-        if (userIndex !== -1) {
-            postToUpdate.likes.users.splice(userIndex, 1);
-        } else {
-            postToUpdate.likes.users.push(email);
-        }
+        const isLiked = post.likes.users.includes(email);
 
-        postToUpdate.likes.count = postToUpdate.likes.users.length;
-        await postToUpdate.save();
+        const updatedPost = await postModel.findByIdAndUpdate(
+            postId,
+            isLiked 
+                ? { $pull: { "likes.users": email }, $inc: { "likes.count": -1 } }
+                : { $addToSet: { "likes.users": email }, $inc: { "likes.count": 1 } },
+            { new: true }
+        );
 
-        res.status(200).json({ post: postToUpdate, msg: userIndex !== -1 ? "Unliked" : "Liked" });
+        res.status(200).json({ post: updatedPost, msg: isLiked ? "Unliked" : "Liked" });
     } catch (error) {
         res.status(500).json({ message: "Interaction failed: " + error.message });
     }

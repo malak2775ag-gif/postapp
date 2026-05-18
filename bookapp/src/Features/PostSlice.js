@@ -39,12 +39,14 @@ const postSlice = createSlice({
     posts: [],
     count: 0,
     isLoading: false,
+    isSuccess: false,
     isError: false,
     message: "",
   },
   reducers: {
     resetPosts: (state) => {
       state.isLoading = false;
+      state.isSuccess = false;
       state.isError = false;
       state.message = "";
     },
@@ -62,13 +64,24 @@ const postSlice = createSlice({
         state.isError = true;
         state.message = action.payload;
       })
+      .addCase(savePost.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(savePost.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
         state.posts.unshift(action.payload.post); // Add new post to the top
         state.count += 1;
+        state.message = action.payload.msg;
+      })
+      .addCase(savePost.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       })
       .addCase(likePost.fulfilled, (state, action) => {
-        // Ensure string comparison for IDs
-        const index = state.posts.findIndex((p) => p._id.toString() === action.payload.post._id.toString());
+        // Ensure strict string comparison for IDs to trigger re-render
+        const index = state.posts.findIndex((p) => String(p._id) === String(action.payload.post._id));
         if (index !== -1) {
           state.posts[index] = action.payload.post;
         }

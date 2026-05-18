@@ -83,7 +83,7 @@ const bookSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = true;
         // Remove the deleted book from the state array immediately
-        state.books = state.books.filter((book) => book._id !== action.payload);
+        state.books = state.books.filter((book) => String(book._id) !== String(action.payload));
         state.message = "Book removed from your shelf.";
       })
       .addCase(deleteBook.rejected, (state, action) => {
@@ -93,18 +93,17 @@ const bookSlice = createSlice({
       })
       // Comment Reducers
       .addCase(addComment.fulfilled, (state, action) => {
-        // Ensure string comparison for IDs
-        const book = state.books.find((b) => b._id.toString() === action.payload.bookId.toString());
+        // Using String() to handle both potential ObjectIds and Strings safely
+        const book = state.books.find((b) => String(b._id) === String(action.payload.bookId));
         if (book) {
           if (!book.comments) book.comments = [];
           book.comments.unshift(action.payload.comment);
         }
       })
       .addCase(likeComment.fulfilled, (state, action) => {
-        // Use toString() to ensure we are comparing string values
-        const book = state.books.find((b) => b._id.toString() === action.payload.bookId.toString());
+        const book = state.books.find((b) => String(b._id) === String(action.payload.bookId));
         if (book && book.comments) {
-          const comment = book.comments.find((c) => c._id.toString() === action.payload.commentId.toString());
+          const comment = book.comments.find((c) => String(c._id) === String(action.payload.commentId));
           if (comment) {
             comment.likes = action.payload.likes;
           }

@@ -11,11 +11,11 @@ import {
   Container,
   Row,
   Col,
-  
+  Alert
 } from "reactstrap";
 
 // Importing 'useState' hook from React to manage form input values
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Importing the validation schema for the form (defines rules for valid input)
 import { userSchemaValidation } from "../Validations/UserValidations";
@@ -29,12 +29,20 @@ import { useForm } from "react-hook-form";
 // Importing 'yupResolver' to connect 'yup' validation with 'react-hook-form'
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { registerUser } from "../Features/UserSlice";
+import { registerUser, reset } from "../Features/UserSlice";
 import logo from '../assets/hibr_logo.png';
 
 const Register = () => {
   // useSelector retrieves the current list of users from the Redux store
-  const { isLoading } = useSelector((state) => state.users);
+  const { isLoading, isError, message } = useSelector((state) => state.users);
+
+  // useDispatch hook to dispatch Redux actions (like adding or updating users)
+  const dispatch = useDispatch();
+
+  // Reset state when the component mounts to prevent redirect loops
+  useEffect(() => {
+    dispatch(reset());
+  }, [dispatch]);
 
   // useForm hook from 'react-hook-form' to handle form validation and submission
   const {
@@ -46,9 +54,6 @@ const Register = () => {
     // Connects the Yup validation schema to react-hook-form
     resolver: yupResolver(userSchemaValidation),
   });
-
-  // useDispatch hook to dispatch Redux actions (like adding or updating users)
-  const dispatch = useDispatch();
 
   // useNavigate hook to redirect the user to another page (e.g., login page)
   const navigate = useNavigate();
@@ -68,10 +73,10 @@ const Register = () => {
       // Dispatch the action and wait for it to finish successfully before navigating
       const resultAction = await dispatch(registerUser(userData));
       if (registerUser.fulfilled.match(resultAction)) {
-        navigate("/login");
+        // Since registerUser already logs the user in, navigate to Home
+        navigate("/");
       } else {
-        const errorMsg = resultAction.payload?.message || resultAction.payload || "Unknown error";
-        alert("Registration failed: " + errorMsg);
+        // Error is handled via the useSelector and the Alert component below
       }
     } catch (error) {
       console.error("Registration Error:", error);
@@ -92,6 +97,9 @@ const Register = () => {
               <img src={logo} alt="HIBR Logo" style={{ height: '100px', borderRadius: '50%' }} />
             </div>
             <h2 className="text-center mb-4 text-primary">Join HIBR</h2> {/* Added a title for the form */}
+            
+            {isError && <Alert color="danger">{message}</Alert>}
+
             <Controller
               name="username"
               control={control}
@@ -102,6 +110,7 @@ const Register = () => {
                     type="text"
                     id="username"
                     placeholder="Enter your username..."
+                    autoComplete="off"
                     {...field}
                   />
                   <p className="error">{errors.username?.message}</p>
@@ -119,6 +128,7 @@ const Register = () => {
                     type="text"
                     id="email"
                     placeholder="Enter your email..."
+                    autoComplete="off"
                     {...field}
                   />
                   <p className="error">{errors.email?.message}</p>

@@ -9,6 +9,11 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Clear any previous success/error states when entering the login page
+    dispatch(reset());
+  }, [dispatch]);
+
   // Select state from the Redux store
   const { isSuccess, isError, message, isLoading } = useSelector((state) => state.users);
 
@@ -57,6 +62,7 @@ const Login = () => {
                 id="email" 
                 placeholder="Enter your email or username..." 
                 value={email}
+                autoComplete="username"
                 onChange={(e) => setemail(e.target.value)}
               />
             </FormGroup>

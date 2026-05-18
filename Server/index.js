@@ -37,10 +37,11 @@ const connectionString = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER}/
 mongoose.set('strictQuery', false);
 
 mongoose.connect(connectionString, {
-  serverSelectionTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
   family: 4,
-  bufferCommands: false,
+  // Set to true to allow Mongoose to wait for connection
+  bufferCommands: true,
   tls: true,
   retryWrites: true,
   w: 'majority',

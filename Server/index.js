@@ -47,9 +47,11 @@ const PORT = ENV.PORT;
 mongoose.set('strictQuery', false);
 
 mongoose.connect(connectionString, {
-  // Modern mongodb+srv strings handle TLS and retryWrites automatically.
-  // We only keep the timeout to fail fast if the network is down.
-  serverSelectionTimeoutMS: 5000, 
+  serverSelectionTimeoutMS: 5000,
+  // Forces the use of IPv4, which resolves SSL/handshake issues on some cloud platforms
+  family: 4,
+  // Explicitly ensure TLS is active
+  tls: true,
 })
   .then(() => {
     console.log("Success: Connected to HIBR Database (book)");
